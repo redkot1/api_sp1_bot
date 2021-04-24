@@ -29,7 +29,6 @@ def parse_homework_status(homework):
 
 
 def get_homework_statuses(current_timestamp):
-    bot_client = telegram.Bot(token=TELEGRAM_TOKEN)
     if current_timestamp is None:
         current_timestamp = int(time.time())
     try:
@@ -37,13 +36,11 @@ def get_homework_statuses(current_timestamp):
         homework_statuses = requests.get(
             PRAKTIKUM_URL,
             params={'from_date': current_timestamp},
-            headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}', }
+            headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'}
         )
         logger.info('Ответ с сервера получен', homework_statuses.json())
         return homework_statuses.json()
     except Exception as error:
-        error_text = f'Бот столкнулся с ошибкой: {error}'
-        bot_client.send_message(chat_id=CHAT_ID, text=error_text)
         logger.error(
             f'Бот столкнулся с ошибкой: {error}',
             exc_info=True
