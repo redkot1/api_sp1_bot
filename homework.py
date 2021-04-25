@@ -19,12 +19,24 @@ PRAKTIKUM_URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 
 def parse_homework_status(homework):
     homework_name = homework['homework_name']
+    if homework_name is None:
+        none_homework = 'ДЗ отсутствует!'
+        logger.error(none_homework)
+        return none_homework
     homework_status = homework['status']
-    if homework_status == 'rejected':
+    if homework_status is None:
+        none_status = f'Отсутствует статус работы "{homework_name}"!'
+        logger.error(none_status)
+        return none_status
+    if homework_status == 'reviewing':
+        verdict = 'Работа взята в ревью.'
+    elif homework_status == 'rejected':
         verdict = 'К сожалению в работе нашлись ошибки.'
+    elif homework_status == 'approved':
+        verdict = ('Ревьюеру всё понравилось, можно приступать'
+                   ' к следующему уроку.')
     else:
-        verdict = 'Ревьюеру всё понравилось, можно приступать'\
-            ' к следующему уроку.'
+        verdict = f'Неизвестный статус работы {homework_status}'
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
@@ -49,7 +61,7 @@ def get_homework_statuses(current_timestamp):
 
 
 def send_message(message, bot_client):
-    logger.debug(f'Сообщение: {message} отправлено!')
+    logger.info(f'Сообщение: {message} отправлено!')
     return bot_client.send_message(chat_id=CHAT_ID, text=message)
 
 
@@ -61,11 +73,11 @@ def main():
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
-            if new_homework.get('homeworks'):
+            homeworks = new_homework.get('homeworks')
+            if homeworks:
                 send_message(parse_homework_status(
-                    new_homework.get('homeworks')[0]),
+                    homeworks[0]),
                     bot_client)
-                logger.info('Сообщение отправлено')
             current_timestamp = new_homework.get(
                 'current_date',
                 current_timestamp)
@@ -74,7 +86,9 @@ def main():
 
         except Exception as e:
             logger.error(e, exc_info=True)
-            print(f'Бот столкнулся с ошибкой: {e}')
+            e_message = f'Бот столкнулся с ошибкой: {e}'
+            send_message(e_message, bot_client)
+            print(e_message)
             time.sleep(5)
 
 
