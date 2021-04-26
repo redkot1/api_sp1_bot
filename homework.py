@@ -19,7 +19,7 @@ PRAKTIKUM_URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 
 def parse_homework_status(homework):
     homework_name = homework['homework_name']
-    if homework_name is None:
+    if homework_name is None or homework is None:
         none_homework = 'ДЗ отсутствует!'
         logger.error(none_homework)
         return none_homework
@@ -53,8 +53,9 @@ def get_homework_statuses(current_timestamp):
         logger.info('Ответ с сервера получен', homework_statuses.json())
         return homework_statuses.json()
     except Exception as error:
+        error_message = f'Бот столкнулся с ошибкой: {error}'
         logger.error(
-            f'Бот столкнулся с ошибкой: {error}',
+            error_message,
             exc_info=True
         )
         time.sleep(5)
@@ -88,7 +89,6 @@ def main():
             logger.error(e, exc_info=True)
             e_message = f'Бот столкнулся с ошибкой: {e}'
             send_message(e_message, bot_client)
-            print(e_message)
             time.sleep(5)
 
 
